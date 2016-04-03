@@ -1,73 +1,89 @@
-window.onload = function () {
-  var oReq = new XMLHttpRequest();
-  oReq.addEventListener('load', dataRequest());
-  oReq.open('GET', "http://www.reddit.com/r/music.json");
-  oReq.send();
-  console.log('after xhr send');
-};
 
-var dataRequest = function () {
-  var data = JSON.parse(this.responseText);
+var subReddit = document.getElementById('subreddit');
+subReddit.addEventListener('click', function(event){
+event.preventDefault();
+
+  var category = document.getElementById('category');
+
+  var dataRequest = new XMLHttpRequest();
+  dataRequest.addEventListener('load', getData);
+  dataRequest.open('GET', "https://www.reddit.com/r/" + category.value + ".json");
+  dataRequest.send();
+});
+
+
+function getData(){
+  data = JSON.parse(this.responseText);
+  variables(data);
+}
+
+function variables (data) {
+
   var content = document.getElementById('content');
-  var dataLink;
-  var title;
-  var image;
-  var views;
+  var tempFrag = document.createDocumentFragment();
 
 
-  function variables (data){
+  for (var i = 0; i < data.data.children.length; i++) {
 
-    for (var i = 0; i < data.data.children.length; i++) {
+    var dataLink = data.data.children[i].data.permalink;
+    var image;
 
-      dataLink = data.data.children[i].data.Link;
+    if(data.data.children[i].data.preview){
+       image = data.data.children[i].data.preview.images[0].source.url;
+    } else{
+      image = 'http://www.metrohnl.com/wp-content/uploads/2015/04/metro-042915-strictly-business-jason-sewell.jpg';
+    }
 
-      if(data.data.children[i].data.preview){
-         image = data.data.children[i].data.preview.images[0].source.url;
-      }else{
-        image = 'http://www.mypetchicken.com/catalog/Day-Old-Baby-Chicks/White-Silkie-Bantam-p250.aspx';
-      }
+    var title = data.data.children[i].data.title;
+    var author = data.data.children[i].data.author;
+    var creation = data.data.children[i].data.created_utc;
+    var views = data.data.children[i].data.score;
 
-      title = data.data.children[i].data.title;
-      views = data.data.children[i].data.score;
 
-      display(dataLink, title, image, views);
+    var newArticle = display(dataLink, image, title, author, creation, views);
+    tempFrag.appendChild(newArticle);
   }
+  content.appendChild(tempFrag);
 }
 
 
-  function display (dataLink, objName, image, views) {
-    var linkOp = document.createElement('a');
-    linkOp.setAttribute('href', 'http://www.reddit.com' + dataLink );
-    linkOp.setAttribute('target', '_blank' + dataLink );
-    content.appendChild(linkOp);
+function display (dataLink, image, title, author, creation, views) {
+    var articleDiv = document.createElement('article');
 
-    var objDiv = document.createElement('div');
-    objDiv.setAttribute('class', 'objDiv');
-    linkOut.appendChild(objDiv);
+    var title_ = document.createElement('h1');
+    title_.innerHTML = title;
+    articleDiv.appendChild(title_);
 
-    var imageDisplay = document.createElement('div');
-    imageDisplay.setAttribute('class', 'article-pic');
-    imageDisplay.style.backgroundImage = image;
-    imageDisplay.style.backgroundSize = 'cover';
-    objDiv.appendChild(imageDisplay);
+    var linkOut = document.createElement('a');
+    linkOut.setAttribute('href', 'http://www.reddit.com' + dataLink);
+    linkOut.setAttribute('target', "_blank" + dataLink);
+    linkOut.textContent = 'Link to Reddit Article';
+    articleDiv.appendChild(linkOut);
+
+
+    var articlePic = document.createElement('div');
+    articlePic.setAttribute('class', 'articlePic');
+    articlePic.style.backgroundImage = image;
+    articlePic.style.backgroundSize = 'cover';
+    articleDiv.appendChild(articlePic);
+
+    var articlePicImage = document.createElement('img');
+    articlePicImage.setAttribute('src', image);
+    articlePicImage.setAttribute('opacity', '0');
+    articlePicImage.setAttribute('width', '275px');
+    articlePicImage.setAttribute('height', '170px');
+    articlePic.appendChild(articlePicImage);
 
     var listGen = document.createElement('ul');
-    objDiv.appendChild('listGen');
+    articleDiv.appendChild(listGen);
 
-    var title = document.createElement('h1');
-    title.innerHTML = objName;
-    objDiv.appendChild(title);
+    var viewsList = document.createElement('li');
+    viewsList.innerHTML = (views + ' views');
+    listGen.appendChild(viewsList);
 
-    var viewDisplay = document.createElement('li');
-    viewsDisplay.innerHTML = (views + ' views');
-    listGen.appendChild(viewDisplay);
+    var authorList = document.createElement('li');
+    authorList.innerHTML = 'posted by: ' + author;
+    listGen.appendChild(authorList);
 
-  }
-
-
-
-
-  return{
-    variables: variables
-  };
-};
+   return articleDiv;
+}
