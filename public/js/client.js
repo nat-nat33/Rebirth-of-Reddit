@@ -1,15 +1,18 @@
-
+var clicked = 0;
 var subReddit = document.getElementById('subreddit');
-subReddit.addEventListener('click', function(event){
-event.preventDefault();
-
+  subReddit.addEventListener('click', function(event){
+  clicked ++;
+  console.log(clicked);
+  moveInput();
+  event.preventDefault();
+  console.log(clicked);
   var category = document.getElementById('category');
-
   var dataRequest = new XMLHttpRequest();
   dataRequest.addEventListener('load', getData);
   dataRequest.open('GET', "https://www.reddit.com/r/" + category.value + ".json");
   dataRequest.send();
 });
+
 
 
 function getData(){
@@ -36,7 +39,7 @@ function variables (data) {
 
     var title = data.data.children[i].data.title;
     var author = data.data.children[i].data.author;
-    var creation = data.data.children[i].data.created_utc;
+    var creation = Date(data.data.children[i].data.created_utc);
     var views = data.data.children[i].data.score;
 
 
@@ -84,6 +87,10 @@ function display (dataLink, image, title, author, creation, views) {
     var authorList = document.createElement('li');
     authorList.innerHTML = 'posted by: ' + author;
     listGen.appendChild(authorList);
+
+    var created = document.createElement('li');
+    created.innerHTML = 'Date Created: '+ creation;
+    listGen.appendChild(created);
 
    return articleDiv;
 }
